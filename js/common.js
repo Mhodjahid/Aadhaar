@@ -51,14 +51,13 @@
   }
 
   /* ---- Welcome loader ---- */
-  function initLoader(onComplete) {
+  function initLoader() {
     var loader = document.querySelector(".page-loader");
     var title = loader && loader.querySelector("[data-loader-title]");
     var shouldShow = document.documentElement.classList.contains("show-welcome-loader");
     if (!loader || !title || !shouldShow) {
       if (loader) loader.remove();
       document.body.classList.remove("is-loading");
-      onComplete();
       return;
     }
 
@@ -96,7 +95,6 @@
         if (loader.parentNode) loader.parentNode.removeChild(loader);
         document.documentElement.classList.remove("show-welcome-loader");
         document.body.classList.remove("is-loading");
-        onComplete();
       }, reducedMotion ? 20 : 650);
     }
 
@@ -250,6 +248,129 @@
     counters.forEach(function (c) { io.observe(c); });
   }
 
+  /* ---- Page scrollbar below the sticky header ---- */
+  function initPageScrollbar() {
+    var root = document.documentElement;
+    var track = document.createElement("div");
+    var thumb = document.createElement("div");
+    track.className = "page-scrollbar";
+    track.setAttribute("role", "scrollbar");
+    track.setAttribute("aria-label", "Page scroll position");
+    track.setAttribute("aria-orientation", "vertical");
+    track.setAttribute("aria-valuemin", "0");
+    track.setAttribute("aria-valuemax", "100");
+    track.setAttribute("aria-valuenow", "0");
+    track.tabIndex = 0;
+    if (!document.body.id) document.body.id = "page-content";
+    track.setAttribute("aria-controls", document.body.id);
+    thumb.className = "page-scrollbar-thumb";
+    track.appendChild(thumb);
+    document.body.appendChild(track);
+    root.classList.add("has-page-scrollbar");
+
+    var thumbHeight = 0;
+    var dragging = false;
+    var dragStartY = 0;
+    var dragStartScroll = 0;
+
+    function getMetrics() {
+      var trackHeight = track.clientHeight;
+      var maxScroll = Math.max(0, root.scrollHeight - window.innerHeight);
+      var minimumThumbHeight = window.innerWidth <= 680 ? 44 : 34;
+      thumbHeight = Math.min(
+        trackHeight,
+        Math.max(minimumThumbHeight, trackHeight * window.innerHeight / root.scrollHeight)
+      );
+      return {
+        trackHeight: trackHeight,
+        maxScroll: maxScroll,
+        maxThumbOffset: Math.max(0, trackHeight - thumbHeight)
+      };
+    }
+
+    function update() {
+      var metrics = getMetrics();
+      track.hidden = metrics.maxScroll <= 0 || metrics.trackHeight <= 0;
+      if (track.hidden) return;
+
+      var progress = Math.min(1, Math.max(0, window.scrollY / metrics.maxScroll));
+      thumb.style.height = thumbHeight + "px";
+      thumb.style.transform = "translateY(" + metrics.maxThumbOffset * progress + "px)";
+      track.setAttribute("aria-valuenow", String(Math.round(progress * 100)));
+    }
+
+    function scheduleUpdate() {
+      window.requestAnimationFrame(update);
+    }
+
+    function setScrollPosition(position) {
+      var previousBehavior = root.style.scrollBehavior;
+      root.style.scrollBehavior = "auto";
+      window.scrollTo(0, Math.max(0, Math.min(position, root.scrollHeight - window.innerHeight)));
+      root.style.scrollBehavior = previousBehavior;
+    }
+
+    function scrollToThumbOffset(offset) {
+      var metrics = getMetrics();
+      var progress = metrics.maxThumbOffset
+        ? Math.max(0, Math.min(offset, metrics.maxThumbOffset)) / metrics.maxThumbOffset
+        : 0;
+      setScrollPosition(progress * metrics.maxScroll);
+    }
+
+    function stopDragging() {
+      dragging = false;
+      thumb.classList.remove("is-dragging");
+    }
+
+    track.addEventListener("pointerdown", function (event) {
+      if (event.pointerType === "mouse" && event.button !== 0) return;
+      event.preventDefault();
+
+      if (event.target === thumb) {
+        dragging = true;
+        dragStartY = event.clientY;
+        dragStartScroll = window.scrollY;
+        thumb.classList.add("is-dragging");
+        track.setPointerCapture(event.pointerId);
+        return;
+      }
+
+      var rect = track.getBoundingClientRect();
+      scrollToThumbOffset(event.clientY - rect.top - thumbHeight / 2);
+    });
+
+    track.addEventListener("pointermove", function (event) {
+      if (!dragging) return;
+      var metrics = getMetrics();
+      if (!metrics.maxThumbOffset) return;
+      var scrollDelta = (event.clientY - dragStartY) * metrics.maxScroll / metrics.maxThumbOffset;
+      setScrollPosition(dragStartScroll + scrollDelta);
+    });
+    track.addEventListener("pointerup", stopDragging);
+    track.addEventListener("pointercancel", stopDragging);
+
+    track.addEventListener("keydown", function (event) {
+      var step = Math.max(60, window.innerHeight * 0.8);
+      var target;
+      if (event.key === "ArrowDown") target = window.scrollY + 60;
+      else if (event.key === "ArrowUp") target = window.scrollY - 60;
+      else if (event.key === "PageDown") target = window.scrollY + step;
+      else if (event.key === "PageUp") target = window.scrollY - step;
+      else if (event.key === "Home") target = 0;
+      else if (event.key === "End") target = root.scrollHeight - window.innerHeight;
+      else return;
+
+      event.preventDefault();
+      setScrollPosition(target);
+    });
+
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
+    window.addEventListener("load", scheduleUpdate);
+    update();
+  }
+
   /* ---- Top and bottom scroll button ---- */
   function initScrollControl() {
     var button = document.createElement("button");
@@ -306,14 +427,113 @@
     y.forEach(function (n) { n.textContent = new Date().getFullYear(); });
   }
 
+  /* ---- Responsive footer accordions ---- */
+  function initFooterAccordions() {
+    var accordions = document.querySelectorAll(".footer-accordion");
+    if (!accordions.length) return;
+
+    var mobile = window.matchMedia("(max-width: 680px)");
+    var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    var transitionHandlers = new WeakMap();
+    var transitionTokens = new WeakMap();
+    var expandedStates = new WeakMap();
+
+    function clearTransition(accordion, content) {
+      var handler = transitionHandlers.get(accordion);
+      if (handler) content.removeEventListener("transitionend", handler);
+      transitionHandlers.delete(accordion);
+      transitionTokens.set(accordion, (transitionTokens.get(accordion) || 0) + 1);
+    }
+
+    function clearAnimationStyles(content) {
+      content.style.height = "";
+      content.style.opacity = "";
+      content.style.overflow = "";
+    }
+
+    function syncAccordionState() {
+      accordions.forEach(function (accordion) {
+        var content = accordion.querySelector(".footer-accordion-content");
+        clearTransition(accordion, content);
+        content.style.transition = "none";
+        accordion.open = !mobile.matches;
+        expandedStates.set(accordion, accordion.open);
+        clearAnimationStyles(content);
+        content.offsetHeight;
+        content.style.transition = "";
+      });
+    }
+
+    accordions.forEach(function (accordion) {
+      var content = accordion.querySelector(".footer-accordion-content");
+      accordion.querySelector("summary").addEventListener("click", function (event) {
+        event.preventDefault();
+        if (!mobile.matches) return;
+
+        var shouldOpen = !expandedStates.get(accordion);
+        expandedStates.set(accordion, shouldOpen);
+        clearTransition(accordion, content);
+        var token = transitionTokens.get(accordion);
+
+        if (reducedMotion.matches) {
+          accordion.open = shouldOpen;
+          clearAnimationStyles(content);
+          return;
+        }
+
+        if (shouldOpen) {
+          var startHeight = accordion.open ? content.getBoundingClientRect().height : 0;
+          var startOpacity = accordion.open ? parseFloat(window.getComputedStyle(content).opacity) : 0;
+          accordion.open = true;
+          content.style.overflow = "hidden";
+          content.style.height = startHeight + "px";
+          content.style.opacity = String(startOpacity);
+          content.offsetHeight;
+
+          window.requestAnimationFrame(function () {
+            if (transitionTokens.get(accordion) !== token) return;
+            content.style.height = content.scrollHeight + "px";
+            content.style.opacity = "1";
+          });
+        } else {
+          content.style.overflow = "hidden";
+          content.style.height = content.getBoundingClientRect().height + "px";
+          content.style.opacity = window.getComputedStyle(content).opacity;
+          content.offsetHeight;
+
+          window.requestAnimationFrame(function () {
+            if (transitionTokens.get(accordion) !== token) return;
+            content.style.height = "0px";
+            content.style.opacity = "0";
+          });
+        }
+
+        var onTransitionEnd = function (transitionEvent) {
+          if (transitionEvent.target !== content || transitionEvent.propertyName !== "height") return;
+          content.removeEventListener("transitionend", onTransitionEnd);
+          transitionHandlers.delete(accordion);
+          if (transitionTokens.get(accordion) !== token) return;
+          if (!shouldOpen) accordion.open = false;
+          clearAnimationStyles(content);
+        };
+        transitionHandlers.set(accordion, onTransitionEnd);
+        content.addEventListener("transitionend", onTransitionEnd);
+      });
+    });
+
+    syncAccordionState();
+    mobile.addEventListener("change", syncAccordionState);
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     initNav();
     initYear();
-    initLoader(function () {
-      initScrollControl();
-      initTypewriter();
-      initReveal();
-      initCounters();
-    });
+    initFooterAccordions();
+    initPageScrollbar();
+    initScrollControl();
+    initTypewriter();
+    initReveal();
+    initCounters();
+    initLoader();
   });
 })();
