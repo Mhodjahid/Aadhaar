@@ -10,7 +10,7 @@
   <script>
     if (window.performance && typeof performance.getEntriesByType === "function") {
       var navigationEntry = performance.getEntriesByType("navigation")[0];
-      if (navigationEntry && navigationEntry.type === "reload") {
+      if (!navigationEntry || navigationEntry.type !== "back_forward") {
         document.documentElement.classList.add("show-welcome-loader");
       }
     }
@@ -33,8 +33,13 @@
     </div>
     <noscript>
       <style>
-        .page-loader { display: none !important; }
-        body.is-loading { overflow: auto !important; }
+        .page-loader {
+          display: none !important;
+        }
+
+        body.is-loading {
+          overflow: auto !important;
+        }
       </style>
     </noscript>
   </div>
@@ -42,13 +47,23 @@
   <!-- ============ HEADER ============ -->
   <header class="site-header">
     <div class="container nav">
-      <a href="index.html" class="brand">
-        <svg class="logo-mark" viewBox="0 0 44 44" fill="none" aria-hidden="true">
-          <rect width="44" height="44" rx="11" fill="#047857" />
-          <path d="M22 9c-5 7-9 10-9 16a9 9 0 0 0 18 0c0-6-4-9-9-16z" fill="#fff" />
-          <path d="M22 17c-2.5 3.5-4.5 5.5-4.5 8.5a4.5 4.5 0 0 0 9 0c0-3-2-5-4.5-8.5z" fill="#fbbf24" />
+      <a href="index.html" class="brand" aria-label="AADHAAR — Enabling Better Futures">
+        <svg class="brand-logo-filter" aria-hidden="true" focusable="false">
+          <filter id="aadhaar-keep-green" color-interpolation-filters="sRGB">
+            <feColorMatrix type="matrix" values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 -16 16 0 0 0" />
+          </filter>
         </svg>
-        <span>AADHAAR<small>Enabling Better Future</small></span>
+        <span class="brand-logo-composite">
+          <img class="brand-logo-image" src="assets/logo/logo-aadhaar-association.png" alt="" />
+          <svg class="brand-logo-wordmark" viewBox="0 0 500 117" aria-hidden="true">
+            <text x="105" y="104" fill="#047857" font-family="'Plus Jakarta Sans', Arial, sans-serif"
+              font-size="24" font-style="italic" font-weight="600">Enabling Better Futures</text>
+            <text x="8" y="78" fill="#C00000" font-family="'Plus Jakarta Sans', Arial, sans-serif"
+              font-size="112" font-weight="800">A</text>
+            <text x="92" y="78" fill="#C00000" font-family="'Plus Jakarta Sans', Arial, sans-serif"
+              font-size="58" font-weight="700">adhaar</text>
+          </svg>
+        </span>
       </a>
       <nav>
         <ul class="nav-links" id="navLinks">
@@ -58,10 +73,8 @@
                 stroke-width="2.4">
                 <path d="M6 9l6 6 6-6" />
               </svg></a>
-                        <button type="button" class="nav-submenu-toggle" aria-label="Toggle About Us submenu"
-              aria-expanded="false">
-              <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2.4">
+            <button type="button" class="nav-submenu-toggle" aria-label="Toggle About Us submenu" aria-expanded="false">
+              <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </button>
@@ -88,10 +101,9 @@
                 stroke-width="2.4">
                 <path d="M6 9l6 6 6-6" />
               </svg></a>
-                        <button type="button" class="nav-submenu-toggle" aria-label="Toggle Thematic Areas submenu"
+            <button type="button" class="nav-submenu-toggle" aria-label="Toggle Thematic Areas submenu"
               aria-expanded="false">
-              <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2.4">
+              <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
                 <path d="M6 9l6 6 6-6" />
               </svg>
             </button>
@@ -100,18 +112,18 @@
                     stroke-width="2">
                     <path d="M22 10 12 5 2 10l10 5 10-5zM6 12v5c2 2 4 2 6 2s4 0 6-2v-5" />
                   </svg></span><span><strong>Education</strong><span>School &amp; online learning</span></span></a>
-              <a href="#skill-development"><span class="nd-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2">
+              <a href="#skill-development"><span class="nd-ico"><svg viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
                     <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4l-6 6 2 2 6-6a4 4 0 0 0 5.4-5.4l-2 2-1.4-1.4 2-2z" />
                   </svg></span><span><strong>Skill Development</strong><span>Vocational training</span></span></a>
-              <a href="#women-empowerment"><span class="nd-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2">
+              <a href="#women-empowerment"><span class="nd-ico"><svg viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
                     <circle cx="12" cy="8" r="4" />
                     <path d="M5 21c0-4 3-7 7-7s7 3 7 7" />
                   </svg></span><span><strong>Women Empowerment</strong><span>SHGs &amp; digital
                     inclusion</span></span></a>
-              <a href="#community-development"><span class="nd-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2">
+              <a href="#community-development"><span class="nd-ico"><svg viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
                     <path d="M3 21h18M5 21V8l7-4 7 4v13" />
                   </svg></span><span><strong>Community Development</strong><span>Grassroots engagement</span></span></a>
               <a href="#action-research"><span class="nd-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -124,6 +136,7 @@
                   </svg></span><strong>Policy Advocacy</strong></a>
             </div>
           </li>
+          <li><a href="https://aadharlmsuat.finlabsindia.org/" target="_blank" rel="noopener noreferrer">LMS</a></li>
           <li><a href="#impact">Our Impact</a></li>
           <li><a href="blog.html">Blog</a></li>
           <li><a href="contact.html">Contact</a></li>
@@ -564,14 +577,18 @@
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <a href="index.html" class="brand">
-            <svg class="logo-mark" viewBox="0 0 44 44" fill="none" aria-hidden="true">
-              <rect width="44" height="44" rx="11" fill="#10b981" />
-              <path d="M22 9c-5 7-9 10-9 16a9 9 0 0 0 18 0c0-6-4-9-9-16z" fill="#fff" />
-              <path d="M22 17c-2.5 3.5-4.5 5.5-4.5 8.5a4.5 4.5 0 0 0 9 0c0-3-2-5-4.5-8.5z" fill="#fbbf24" />
-            </svg>
-            <span style="color:#fff;">AADHAAR<small style="color:rgba(255,255,255,.5);">Development · Harmony ·
-                Action</small></span>
+          <a href="index.html" class="brand" aria-label="AADHAAR — Enabling Better Futures">
+            <span class="brand-logo-composite">
+              <img class="brand-logo-leaf" src="assets/logo/aadhaar-footer-leaf.svg" alt="" />
+              <svg class="brand-logo-wordmark" viewBox="0 0 500 117" aria-hidden="true">
+                <text x="105" y="104" fill="#047857" font-family="'Plus Jakarta Sans', Arial, sans-serif"
+                  font-size="24" font-style="italic" font-weight="600">Enabling Better Futures</text>
+                <text x="8" y="78" fill="#C00000" font-family="'Plus Jakarta Sans', Arial, sans-serif"
+                  font-size="112" font-weight="800">A</text>
+                <text x="92" y="78" fill="#C00000" font-family="'Plus Jakarta Sans', Arial, sans-serif"
+                  font-size="58" font-weight="700">adhaar</text>
+              </svg>
+            </span>
           </a>
           <p>An Association for Development, Harmony and Action Research — a nationally registered not-for-profit
             organization working across India since 2011.</p>
@@ -593,31 +610,34 @@
                   d="M12 2.2c3.2 0 3.6 0 4.9.1 1.2.1 1.8.3 2.2.4.6.2 1 .5 1.4.9.4.4.7.8.9 1.4.1.4.3 1 .4 2.2.1 1.3.1 1.7.1 4.9s0 3.6-.1 4.9c-.1 1.2-.3 1.8-.4 2.2-.2.6-.5 1-.9 1.4-.4.4-.8.7-1.4.9-.4.1-1 .3-2.2.4-1.3.1-1.7.1-4.9.1s-3.6 0-4.9-.1c-1.2-.1-1.8-.3-2.2-.4a3.8 3.8 0 0 1-1.4-.9 3.8 3.8 0 0 1-.9-1.4c-.1-.4-.3-1-.4-2.2C2.2 15.6 2.2 15.2 2.2 12s0-3.6.1-4.9c.1-1.2.3-1.8.4-2.2.2-.6.5-1 .9-1.4.4-.4.8-.7 1.4-.9.4-.1 1-.3 2.2-.4C8.4 2.2 8.8 2.2 12 2.2zm0 3.5A6.3 6.3 0 1 0 18.3 12 6.3 6.3 0 0 0 12 5.7zm0 10.4A4.1 4.1 0 1 1 16.1 12 4.1 4.1 0 0 1 12 16.1zm6.5-10.6a1.5 1.5 0 1 1-1.5-1.5 1.5 1.5 0 0 1 1.5 1.5z" />
               </svg></a>
             <a href="https://www.youtube.com/channel/UCPjiCZ3CY6DdpiMOKzShy3g" aria-label="YouTube"><svg
-                viewBox="0 0 24 24" aria-hidden="true">
-                <path fill="#ff0000"
-                  d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.2 31.2 0 0 0 0 12a31.2 31.2 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.2 31.2 0 0 0 24 12a31.2 31.2 0 0 0-.5-5.8z" />
-                <path fill="#fff" d="m9.6 15.6 6.4-3.6-6.4-3.6z" />
+                viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31.2 31.2 0 0 0 0 12a31.2 31.2 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31.2 31.2 0 0 0 24 12a31.2 31.2 0 0 0-.5-5.8z" />
+                <path fill="white" d="m9.6 15.6 6.4-3.6-6.4-3.6z" />
               </svg></a>
           </div>
         </div>
-        <div class="footer-col">
-          <h4>Quick Links</h4>
-          <a href="index.html">Home</a>
-          <a href="about.html">About Us</a>
-          <a href="#thematic">Thematic Areas</a>
-          <a href="#impact">Our Impact</a>
-          <a href="blog.html">Blog</a>
-          <a href="contact.html">Contact</a>
-        </div>
-        <div class="footer-col">
-          <h4>Thematic Areas</h4>
-          <a href="#thematic">Education</a>
-          <a href="#thematic">Skill Development</a>
-          <a href="#thematic">Women Empowerment</a>
-          <a href="#thematic">Community Development</a>
-          <a href="#thematic">Action Research</a>
-          <a href="#thematic">Policy Advocacy</a>
-        </div>
+        <details class="footer-col footer-accordion" open>
+          <summary>Quick Links</summary>
+          <div class="footer-accordion-content">
+            <a href="index.html">Home</a>
+            <a href="about.html">About Us</a>
+            <a href="#thematic">Thematic Areas</a>
+            <a href="#impact">Our Impact</a>
+            <a href="blog.html">Blog</a>
+            <a href="contact.html">Contact</a>
+          </div>
+        </details>
+        <details class="footer-col footer-accordion" open>
+          <summary>Thematic Areas</summary>
+          <div class="footer-accordion-content">
+            <a href="#thematic">Education</a>
+            <a href="#thematic">Skill Development</a>
+            <a href="#thematic">Women Empowerment</a>
+            <a href="#thematic">Community Development</a>
+            <a href="#thematic">Action Research</a>
+            <a href="#thematic">Policy Advocacy</a>
+          </div>
+        </details>
         <div class="footer-col">
           <h4>Reach Us</h4>
           <ul class="footer-contact">
